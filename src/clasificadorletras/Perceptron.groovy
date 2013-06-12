@@ -11,6 +11,8 @@ package clasificadorletras
  */
 class Perceptron {
     
+    def alfa = 0.00000000000000000002;
+    
     def String alphabetRaw = "..##......#......#.....#.#....#.#...#####..#...#..#...#.###.#########..#....#.#....#.#....#.#####..#....#.#....#.#....#######...#####.#....##......#......#......#......#.......#....#..####.#####...#...#..#....#.#....#.#....#.#....#.#....#.#...#.#####..#######.#....#.#......#.#....###....#.#....#......#....########...####.....#......#......#......#......#..#...#..#...#...###..###..##.#..#...#.#....##.....##.....#.#....#..#...#...#.###..##...#......#......#.....#.#....#.#...#...#..#####..#...#..#...#.######.#.....##.....##.....#######.#.....##.....##.....#######...###...#...#.#.....##......#......#......#.....#.#...#...###..#####..#....#.#.....##.....##.....##.....##.....##....#.#####..########......#......#......#####..#......#......#......#######.....#......#......#......#......#......#..#...#..#...#...###..#....#.#...#..#..#...#.#....##.....#.#....#..#...#...#..#....#....#......#.....#.#....#.#...#...#..#####.#.....##.....###...########..#....#.#....#.#####..#....#.#....#.#....#.#....#######...###.#.#...###.....##......#......#......#.....#.#...#...###..#####...#...#..#....#.#....#.#....#.#....#.#....#.#...#.#####..#######.#....#.#..#...####...#..#...#......#......#....########....###.....#......#......#......#......#......#..#...#...###..###..##.#...#..#..#...#.#....##.....#.#....#..#...#...#.###..##";
     def answer = [
         "a" : [ 1, -1, -1, -1, -1, -1, -1],
@@ -52,51 +54,63 @@ class Perceptron {
                 def errores = [];
                 for( String peso: p.pesos.keySet() ) {
                     def fnet = p.fnet( patron.patron, p.pesos[peso] );
-                    print fnet +  " ";
+                    
                     //Checamos que el valor obtenido sea igual al esperado
                     if( fnet == patron.esperado[i] ){
                         //Creo que no hago nada
                     }else{//Si no son iguales, debemos de aplicar el aprendizaje
                         errores.add(1);
-                        p.correcionError( 0.5, peso, patron.esperado[i] - fnet, patron.patron);
+                        p.correcionError( peso, patron.esperado[i] - fnet, patron.patron);
                     }   
                     i++;
-                    
-                }   
-                println "";
-                println ""
+                }  
+                
+                
                 if( errores.size() > 0 ){ //si hubo al menos un error, se equivocó en reconocer ese patrón
                     errores_patrones++;
                     //println "se equivocó en  " + j
                 }else{
                     //println "no se equivoco en "  + j
                 }
+                
+                //if( j > 2 ) return;
                 j++;
             }
-
+            p.print_pesos();
+            
             println "patronees erroneos " +  errores_patrones;
+            
+            if( errores_patrones == 0)
+                break;
+            
             //println p.pesos
-            break;
+            
         }
+    }
+    
+    def print_pesos(){
+        for( String p: pesos.keySet() ){
+            println pesos[p];
+        }
+        println "";
     }
    
     
     /** entradas es el patron que se recibio de entrada (los 64 valores)
      * */
-    public correcionError( alfa, clase, incremento, entradas){
+    public correcionError( clase, incremento, entradas){
         //print incremento
         //Recorro todos mis pesos de la clase
         for( int x= 0 ; x< pesos[clase].size(); x++){
             pesos[clase][x] += alfa * entradas[x] * incremento;
         }
-        //println pesos[clase];
     }
     
     /** Sacará la net y la f(net)*/
     public fnet( patron, pesos){ 
         def net = 0;
         for( int x=0 ; x < patron.size(); x++){
-            net += patron[x] * pesos[0];
+            net += patron[x] * pesos[x];
         }
         // Aplicamos la fnet
         if( net > 0 ) return 1;
