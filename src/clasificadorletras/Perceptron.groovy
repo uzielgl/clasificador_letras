@@ -11,9 +11,12 @@ package clasificadorletras
  */
 class Perceptron {
     
-    def alfa = 0.00000000000000000002;
+    def alfa = 1;
     
     def String alphabetRaw = "..##......#......#.....#.#....#.#...#####..#...#..#...#.###.#########..#....#.#....#.#....#.#####..#....#.#....#.#....#######...#####.#....##......#......#......#......#.......#....#..####.#####...#...#..#....#.#....#.#....#.#....#.#....#.#...#.#####..#######.#....#.#......#.#....###....#.#....#......#....########...####.....#......#......#......#......#..#...#..#...#...###..###..##.#..#...#.#....##.....##.....#.#....#..#...#...#.###..##...#......#......#.....#.#....#.#...#...#..#####..#...#..#...#.######.#.....##.....##.....#######.#.....##.....##.....#######...###...#...#.#.....##......#......#......#.....#.#...#...###..#####..#....#.#.....##.....##.....##.....##.....##....#.#####..########......#......#......#####..#......#......#......#######.....#......#......#......#......#......#..#...#..#...#...###..#....#.#...#..#..#...#.#....##.....#.#....#..#...#...#..#....#....#......#.....#.#....#.#...#...#..#####.#.....##.....###...########..#....#.#....#.#####..#....#.#....#.#....#.#....#######...###.#.#...###.....##......#......#......#.....#.#...#...###..#####...#...#..#....#.#....#.#....#.#....#.#....#.#...#.#####..#######.#....#.#..#...####...#..#...#......#......#....########....###.....#......#......#......#......#......#..#...#...###..###..##.#...#..#..#...#.#....##.....#.#....#..#...#...#.###..##";
+    
+    def String alphabetRawTest = "..##.....@#......#.....#.#@...#.#...#####..#.@.#..#...#.#o#.#o#######..o....#.#....#.#@...#.#####..#.@..#.#@...#.#....#######...#####@#..@.##......#@.....o......#......#.......#..@.#..####.#####...#.@.#..#....o.#@...#.#....o.#....#.#....#.#@..#.#####..##o####.#....#.#......#.#....#o#@...#.#....#.....@#....########...##o#.....#......#......#......#......o..#...#..o..@#...###..#o#..o#.#..#...#.#....##.....##.....#.#....#..#@..#...#.##o..##...#......o......#.....#.#....#.o...#...#..###o#.@o...o.@o..@o@######.#.....#o.....##.....#o##o##.#.....##.....##..o..o######...###...#...#.#.....##......#@.@.@.#......#.....o.#...o...###..o####..#....#.#.....##.....##@@...##.....#o.....##....#.o####..o#######......#......#......o###...#......#.@....#.@....o######.....#......#......#......#......#......#..o...#.@o...#.@.o##..o....o.#...#..#..#...#.#....o#.....#.#....#..#...#...#..o....o....#......#.....#.#....#.#...#...#..o#o#o.#.....##.....###@@.########.@#....#.#....#.#####.@#....#.#....#@#....o.#....#######...###.#.#...###.....##......#.....@o......#.....#.#...#...o##..#####...#...#..#....#.#....#.#@@..o.#....#.#....o.#.@.#.#####..#######.#....#.#..#..@o##o...#..#...#......#......#....#o##o###....###.....#@.....#@.....#......o......#......#..#...o...###..o##..#o.#...#..#..#...#.o....##.....#.#....#..#...#...o.o##..##";
+    
     def answer = [
         "a" : [ 1, -1, -1, -1, -1, -1, -1],
         "b" : [ -1, 1, -1, -1, -1, -1, -1],
@@ -38,8 +41,8 @@ class Perceptron {
 
     public static void main(String[] args){
         Perceptron p = new Perceptron();
-        p.loadAlphabet();
-        p.convertToBipolar();
+        def alfabeto = p.loadAlphabet( p.alphabetRaw );
+        def patrones = p.convertToBipolar( alfabeto );
         p.inicializar_pesos();
         
         //******** Entrenamiento ************
@@ -49,7 +52,7 @@ class Perceptron {
 
             def j=0;
             def errores_patrones = 0;
-            for( Map patron: p.patrones){
+            for( Map patron: patrones){
                 def i = 0;
                 def errores = [];
                 for( String peso: p.pesos.keySet() ) {
@@ -82,10 +85,52 @@ class Perceptron {
             
             if( errores_patrones == 0)
                 break;
-            
             //println p.pesos
-            
         }
+        
+        //Ya entrenado, con los pesos
+        println "Pesos ya con el entrenamiento:"
+        p.print_pesos();
+        
+        //Hacemos las pruebas
+        alfabeto = p.loadAlphabet( p.alphabetRawTest );
+        patrones = p.convertToBipolar( alfabeto );
+        
+        def patrones_reconocidos = p.runTest( patrones );
+        println patrones_reconocidos
+    }
+    
+    def runTest( patrones ){
+        def j=0;
+        //def errores_patrones = 0;
+        def patrones_reconocidos = 0;
+        for( Map patron: patrones){
+            def i = 0;
+            def errores = [];
+            for( String peso: pesos.keySet() ) {
+                def fnet = fnet( patron.patron, pesos[peso] );
+
+                //Checamos que el valor obtenido sea igual al esperado
+                if( fnet == patron.esperado[i] ){
+                    //Creo que no hago nada
+                }else{//Si no son iguales, debemos de aplicar el aprendizaje
+                    errores.add(1);
+                    //p.correcionError( peso, patron.esperado[i] - fnet, patron.patron);
+                }   
+                i++;
+            }  
+            if( errores.size() > 0 ){ //si hubo al menos un error, se equivocó en reconocer ese patrón 
+                //errores_patrones++;
+                //println "se equivocó en  " + j
+            }else{
+                patrones_reconocidos++;
+                //println "no se equivoco en "  + j
+            }
+            //if( j > 2 ) return;
+            j++;
+        }
+        
+        return patrones_reconocidos;
     }
     
     def print_pesos(){
@@ -123,7 +168,8 @@ class Perceptron {
         }
     }
     
-    public void convertToBipolar(){
+    public convertToBipolar( letters ){
+        def patrones = [];
         for( ArrayList l : letters){
             def t;
             def mapped = [];
@@ -142,10 +188,12 @@ class Perceptron {
                 clase : l[2]
             ] );
         }
+        
+        return patrones;
     }
     
-    public void loadAlphabet(){
-        
+    public loadAlphabet( alphabetRaw ){
+        letters = [];
         for( int x = 0 ; x < alphabetRaw.size() ; x+=63){
             letters.add( [ alphabetRaw[x..x+62] ] );
         }
@@ -197,6 +245,8 @@ class Perceptron {
         letters[18][2] = "e";
         letters[19][2] = "j";
         letters[20][2] = "k"; 
+        
+        return letters;
     }
     
     
