@@ -17,8 +17,7 @@ public class ClasificadorLetras {
         // TODO code application logic here
         
         Perceptron p = new Perceptron();
-        p.loadAlphabet();
-        p.convertToBipolar();
+        
         
         //Creamos los perceptrones de la capa de entrada
         
